@@ -116,7 +116,7 @@ def main():
     model, tokenizer = load_model(args, device)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    if "cube" in args.task:
+    if "blocksworld" in args.task:
         from blocksworld import blocksworld_planning
         blocksworld_planning(model, tokenizer, device, args)
     else:
