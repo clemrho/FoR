@@ -17,6 +17,7 @@ from transformers import AutoTokenizer, BitsAndBytesConfig
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.distributions import Categorical
 from collections import defaultdict
+from prompter_cube import CubePrompter
 sys.path.append("gpt-plan-benchmark/gpt_plan_test")
 
 def add_time(text):
@@ -37,8 +38,8 @@ def add_time(text):
     insert2 = "ACTION <step>: "
     new_text = add_step_statement(new_text, "[PLAN]", "<action>", insert2)
     return new_text
-
-class BlocksWorldGFNTask(LightningModule):
+# reward, prompt, trnasition, ...
+class CubeTask(LightningModule):
     def __init__(
         self,
         args,
@@ -60,14 +61,15 @@ class BlocksWorldGFNTask(LightningModule):
 
         self.tokenizer = tokenizer
         self.reward = None
-        self.prompts = json.load(open("data/blocksworld/my_mcts_prompts_update.json", 'r'))
+        #self.prompts = json.load(open("data/blocksworld/my_mcts_prompts_update.json", 'r')) #need revise
+        #self.prompts = prompts_cube.get_cube_instruct() #actually not used, see init_prompt
         self.replay_buffer = replay_buffer
         self.train_data = train_data
         self.val_data = val_data
-        self.n_samples = args.n_samples # 2 for step 4
-        with open('data/blocksworld/bw_config.yaml', 'r') as file:
-            self.config = yaml.safe_load(file)
-        self.domain_pddl = f'gpt-plan-benchmark/gpt_plan_test/instances/{self.config["domain_file"]}'
+        self.n_samples = args.n_samples # what the ;
+        #with open('data/blocksworld/bw_config.yaml', 'r') as file:
+            #self.config = yaml.safe_load(file)
+        #self.domain_pddl = f'gpt-plan-benchmark/gpt_plan_test/instances/{self.config["domain_file"]}'
 
         self.lr = args.lr
         self.logZ_lr = args.logZ_lr
@@ -79,8 +81,9 @@ class BlocksWorldGFNTask(LightningModule):
         self.reward_temperature = self.args.reward_temp_start
         self.pf_temperature = self.args.pf_temp_start
         self.use_buffer_prob = self.args.use_buffer_prob
-        with open(f"./prompts/pool_prompt_v2_step_{args.step}.json") as f:
-            self.init_prompt = json.load(f)
+ 
+        c = CubePrompter()
+        self.init_prompt = c.get_instruction_prompt()
         
         bnb_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -93,25 +96,27 @@ class BlocksWorldGFNTask(LightningModule):
         self.world_tokenizer = AutoTokenizer.from_pretrained(args.world_model, add_bos_token=False, padding_side='left')
         self.world_tokenizer.pad_token = self.world_tokenizer.eos_token
 
-        transition_path = f"/transitions/{args.step}/transition.pkl"
+        #transition_path = f"/transitions/{args.step}/transition.pkl"
 
-        if os.path.exists(transition_path):
-            with open(transition_path, 'rb') as f:
-                self.transitions = pickle.load(f)
-        else:
-            self.transitions = {}
-        self.ll_reward_dict = {}
+        # if os.path.exists(transition_path):
+        #     with open(transition_path, 'rb') as f:
+        #         self.transitions = pickle.load(f)
+        # else:
+        #     self.transitions = {}
+        # self.ll_reward_dict = {}
 
-        self.traj = defaultdict(int)
+        # self.traj = defaultdict(int)
 
         
     def forward(self, problem, pf_temp):
-        INIT, GOAL, PLAN = problem
-        GOAL = GOAL[0]
-        INIT = INIT[0]
+        # INIT, GOAL = problem
+        # GOAL = GOAL[0]
+        # INIT = INIT[0]
+        INIT= problem
+        c = CubePrompter()
+        GOAL = c.get_goal_state();
 
-        (
-            generated_text, 
+        (  generated_text, 
             actions, 
             states,
             reward, 
@@ -126,12 +131,16 @@ class BlocksWorldGFNTask(LightningModule):
         return generated_text, actions, states, sample, reward
 
     def training_step(self, problem, batch_idx):
-        INIT, GOAL, PLAN = problem
-        GOAL = GOAL[0]
-        INIT = INIT[0]
-        initial_state = f'I have that, {INIT}.'
-        goal = f'My goal is to have that {GOAL}.'
-        actions = PLAN
+        # INIT, GOAL = problem
+        # GOAL = GOAL[0]
+        # INIT = INIT[0]
+        INIT= problem #, MOVE, STEPTOWIN = problem
+        c = CubePrompter()
+        GOAL = c.get_goal_state()
+
+        initial_state = INIT
+        goal = GOAL
+        actions = ['U', 'U\'', 'U2', 'R', 'R\'', 'R2', 'F', 'F\'', 'F2']
         ########################## Compute the reward for ground-truth trajectory ##########################
 
         LOG_R = []
@@ -276,7 +285,7 @@ class BlocksWorldGFNTask(LightningModule):
             base_to_lora(self.model)    # 确保转换成lora
         self.model.eval()           # 必须用eval
 
-        INIT, GOAL, PLAN = problem
+        INIT= problem
         GOAL = GOAL[0]
         INIT = INIT[0]
         total_success = 0
@@ -298,8 +307,10 @@ class BlocksWorldGFNTask(LightningModule):
                 mode="test"
             )
 
-            goal_statement = f"My goal is to have that {GOAL}."
-            goals = re.findall("the [a-z]{0,10} block is on top of the [a-z]{0,10} block", goal_statement)
+            #goal_statement = f"My goal is to have that {GOAL}."
+            #goals = re.findall("the [a-z]{0,10} block is on top of the [a-z]{0,10} block", goal_statement)
+            c = CubePrompter()
+            goals = c.get_goal_state()
             meetings = [g in states[-1] for g in goals]
             if sum(meetings) == len(meetings):
                 total_success += 1
@@ -334,7 +345,7 @@ class BlocksWorldGFNTask(LightningModule):
             base_to_lora(self.model)    # 确保转换成lora
         self.model.eval()           # 必须用eval
 
-        INIT, GOAL, PLAN = problem
+        INIT = problem
         GOAL = GOAL[0]
         INIT = INIT[0]
 
@@ -358,9 +369,9 @@ class BlocksWorldGFNTask(LightningModule):
                 mode="test"
             )
 
-            goal_statement = f"My goal is to have that {GOAL}."
-            goals = re.findall("the [a-z]{0,10} block is on top of the [a-z]{0,10} block", goal_statement)
-            meetings = [g in states[-1] for g in goals]
+            goal_statement = f"My goal is to have that {GOAL}." #
+            goals = re.findall("the [a-z]{0,10} block is on top of the [a-z]{0,10} block", goal_statement)#
+            meetings = [g in states[-1] for g in goals]#
             
             if sum(meetings) == len(meetings):
                 total_success += 1
@@ -368,7 +379,7 @@ class BlocksWorldGFNTask(LightningModule):
                 if (GOAL, INIT, actions_joined) not in success_text:
                     total_solution += 1
                     success_text.append((GOAL, INIT, actions_joined))
-
+#
         if total_success > 0:
             success = 1
         else:
@@ -432,122 +443,189 @@ class BlocksWorldGFNTask(LightningModule):
                                     {'params': [self.logZ,], 'lr': self.logZ_lr}])
 
     def generate_trajectories(self,
-                            initial_state,
-                            goal,
-                            max_steps,
-                            eos_token_id,
-                            pf_temp=1.0,
-                            mode="train",
-                          ):
+                          initial_state,
+                          goal,
+                          max_steps,
+                          eos_token_id,
+                          pf_temp=1.0,
+                          mode="train"):
         """
-        return: trajs, probability of each action in the trajs, log rewards of the trajs, log rewards of (state, action)
+        Generate trajectories to move from initial_state to goal.
+        Args:
+            initial_state: The initial state of the cube.
+            goal: The target/goal state.
+            max_steps: Maximum number of steps allowed to reach the goal.
+            eos_token_id: End of sequence token ID.
+            pf_temp: Temperature for controlling the randomness of action sampling.
+            mode: "train" or "test" mode.
+            
+        Returns:
+            - trajs: The list of trajectories (actions taken).
+            - prob_trajs: Probability of each action in the trajectory.
+            - log_rewards: Log rewards of the entire trajectory.
+            - log_state_action_rewards: Log rewards of each (state, action) pair.
         """
-        if self.args.use_lora:
-            base_to_lora(self.model)
-        self.model.eval()
-        prompt = sample_prompt(self.init_prompt, shuffle_prompt=False, num_shot=1)
-        last_state = initial_state
-        actions = []
-        states  = []
+        max_steps = 11;
+        trajs = []
+        prob_trajs = []
+        log_rewards = []
+        log_state_action_rewards = []
+        actions = ['U', 'U\'', 'U2', 'R', 'R\'', 'R2', 'F', 'F\'', 'F2']
+
+        current_state = initial_state
+
         for step in range(max_steps):
-            icl_template = prompt["icl_list"][step // 2]
-            icl_template = add_time(icl_template)
-            previous_action = ""
-            current_state = last_state
-            allowed_actions = generate_all_actions(last_state)
-            allowed_actions_ = [act for act in allowed_actions if act.lower() not in actions]
+            # Prepare the input prompt for GPT based on the current state and the goal
+            input_prompt = self.prepare_input_prompt(current_state, goal) #debug TO HERE
+            
+            # Tokenize the input and generate the next move
+            inputs = self.tokenizer(input_prompt, return_tensors="pt").to(self.device)
+            outputs = self.model.generate(
+                inputs["input_ids"],
+                do_sample=True,
+                max_new_tokens=1,
+                temperature=pf_temp,
+                eos_token_id=eos_token_id,
+                output_scores=True,
+                return_dict_in_generate=True
+            )
+            
+            # Decode the generated token into the next action (move)
+            next_move = self.tokenizer.decode(outputs.sequences[0], skip_special_tokens=True).strip()
 
-            if len(allowed_actions_) != 0:
+            # Ensure that the move is valid (is in the allowed_actions_)
+            if next_move not in actions:
+                print(f"Invalid move '{next_move}' detected, ignoring this move.")
+                continue  # Skip invalid moves and regenerate
 
-            # epsilon greedy
-                if np.random.rand() < self.epsilon and mode == "train":
-                    action = random.choice(allowed_actions_)
-                    action = action.lower()
-                else:
-                    inputs = icl_template.replace("<init_state>", current_state.lstrip())\
-                        .replace("<goals>", goal).replace("<action>", previous_action.lstrip()).replace("<step>", str(step).strip()).strip()
-                    input_ids = self.tokenizer.encode(inputs.lstrip() + "\n", return_tensors='pt').to(self.device)
+            # Calculate the probability of the move
+            move_prob = torch.exp(outputs.scores[0]).max().item()
+
+            # Update trajectory and probability
+            trajs.append(next_move)
+            prob_trajs.append(move_prob)
+            
+            # Apply the move to the current state
+            new_state = self.apply_move(current_state, next_move)
+            
+            # Check if the new state is the goal state
+            if self.is_goal_state(new_state, goal):
+                reward = 1  # Success: cube solved
+                log_rewards.append(np.log(reward))
+                break  # Stop once the goal is reached
+            else:
+                reward = 0  # Continue solving
+                log_rewards.append(np.log(reward + 1e-6))  # Small reward to avoid log(0)
+            
+            # Log the reward for the (state, action) pair
+            log_state_action_rewards.append((current_state, next_move, np.log(reward + 1e-6)))
+
+            # Move to the next state
+            current_state = new_state
+
+        return trajs, prob_trajs, log_rewards, log_state_action_rewards
+
+
+    # def generate_trajectories(self,
+    #                         initial_state,
+    #                         goal,
+    #                         max_steps,
+    #                         eos_token_id,
+    #                         pf_temp=1.0,
+    #                         mode="train",
+    #                       ):
+    #     """
+    #     return: trajs, probability of each action in the trajs, log rewards of the trajs, log rewards of (state, action)
+    #     """
+    #     if self.args.use_lora:
+    #         base_to_lora(self.model)
+    #     self.model.eval()
+    #     prompt = sample_prompt(self.init_prompt, shuffle_prompt=False, num_shot=1)
+    #     last_state = initial_state
+    #     actions = []
+    #     states  = []
+    #     for step in range(max_steps):
+    #         icl_template = prompt#["icl_list"][step // 2]
+    #         #icl_template = add_time(icl_template)
+    #         previous_action = ""
+    #         current_state = last_state
+    #         allowed_actions_ = ['U', 'U\'', 'U2', 'R', 'R\'', 'R2', 'F', 'F\'', 'F2']
+    #         #allowed_actions_ = [act for act in allowed_actions if act.lower() not in actions]
+
+    #         if len(allowed_actions_) != 0:
+
+    #         # epsilon greedy
+    #             if np.random.rand() < self.epsilon and mode == "train":
+    #                 action = random.choice(allowed_actions_)
+    #                 #action = action.lower()
+    #             else:
+    #                 inputs = icl_template.replace("{init_state}", current_state.lstrip())#.replace("<goals>", goal).replace("<action>", previous_action.lstrip()).replace("<step>", str(step).strip()).strip()
+    #                 input_ids = self.tokenizer.encode(inputs.lstrip() + "\n", return_tensors='pt').to(self.device)
                     
-                    prefix_output = self.model(input_ids[:, :-1], use_cache=True)
-                    prefix_past = prefix_output.past_key_values
+    #                 prefix_output = self.model(input_ids[:, :-1], use_cache=True)
+    #                 prefix_past = prefix_output.past_key_values
 
-                    action_logits = []
-                    for ac in allowed_actions_:
-                        a = ac.lower()
-                        action_ids = self.tokenizer.encode(a, add_special_tokens=False,return_tensors='pt').to(self.device)
-                        input_ids_with_action = torch.cat([input_ids[:, -1:], action_ids], dim=-1)
-                        outputs = self.model(input_ids_with_action, past_key_values=prefix_past, use_cache=True)
-                        logits = outputs.logits  # 获取对应于 action_ids 的 logits
-                        total_log_prob = torch.zeros(1).cuda()
-                        for i in range(1, input_ids_with_action.shape[-1]):
-                            probs = torch.softmax(logits[:, i - 1, :], dim=-1)
-                            for j in range(1):
-                                total_log_prob[j] += torch.log(probs[j, input_ids_with_action[j, i]])
-                        action_logits.append(total_log_prob) 
-                        # sample from tempered policy
-                    action_logits = torch.stack(action_logits) / pf_temp
+    #                 action_logits = []
+    #                 for ac in allowed_actions_:
+    #                     a = ac
+    #                     action_ids = self.tokenizer.encode(a, add_special_tokens=False,return_tensors='pt').to(self.device)
+    #                     input_ids_with_action = torch.cat([input_ids[:, -1:], action_ids], dim=-1)
+    #                     outputs = self.model(input_ids_with_action, past_key_values=prefix_past, use_cache=True)
+    #                     logits = outputs.logits  # 获取对应于 action_ids 的 logits
+    #                     total_log_prob = torch.zeros(1).cuda()
+    #                     for i in range(1, input_ids_with_action.shape[-1]):
+    #                         probs = torch.softmax(logits[:, i - 1, :], dim=-1)
+    #                         for j in range(1):
+    #                             total_log_prob[j] += torch.log(probs[j, input_ids_with_action[j, i]])
+    #                     action_logits.append(total_log_prob) 
+    #                     # sample from tempered policy
+    #                 action_logits = torch.stack(action_logits) / pf_temp
 
-                    action_logits = action_logits.to(torch.float32)
+    #                 action_logits = action_logits.to(torch.float32)
 
-                    probabilities = torch.exp(action_logits) / torch.sum(torch.exp(action_logits))
+    #                 probabilities = torch.exp(action_logits) / torch.sum(torch.exp(action_logits))
                 
 
-                    dist = Categorical(probs=probabilities.t())
+    #                 dist = Categorical(probs=probabilities.t())
 
-                    idx = dist.sample()
+    #                 idx = dist.sample()
 
-                    action = allowed_actions_[idx].lower()
+    #                 action = allowed_actions_[idx].lower()
                 
-            else:
-                action = random.choice(allowed_actions)
-            if 'I have that, ' not in last_state:
-                last_state_ = 'I have that, ' + last_state
-                states.append(last_state_.split('I have that, ')[1].strip())
-            else:
-                states.append(last_state.split('I have that, ')[1].strip())
+    #         else:
+    #             action = random.choice(allowed_actions_)
+    #         # if 'I have that, ' not in last_state:
+    #         #     last_state_ = 'I have that, ' + last_state
+    #         #     states.append(last_state_.split('I have that, ')[1].strip())
+    #         # else:
+    #         #     states.append(last_state.split('I have that, ')[1].strip())
 
-            actions.append(action)
+    #         actions.append(action)
             
-            last_action = action
+    #         last_action = action
 
-            if "Pick" in last_action or "Pick".lower() in last_action: 
-                world_update_prompt = self.prompts["world_update_pickup"].format(last_state, last_action.capitalize())
-            elif "Unstack" in last_action or "Unstack".lower() in last_action:
-                world_update_prompt = self.prompts["world_update_unstack"].format(last_state, last_action.capitalize())
-            elif "Put" in last_action or "Put".lower() in last_action:
-                world_update_prompt = self.prompts["world_update_putdown"].format(last_state, last_action.capitalize())
-            elif "Stack" in last_action or "Stack".lower() in last_action: 
-                world_update_prompt = self.prompts["world_update_stack"].format(last_state, last_action.capitalize())
+
             
+    #         lora_to_base(self.model)
+    #         new_state = 
+    #         self.transitions[(last_state, last_action)] = new_state
+    #         last_state = new_state
+    #     if 'I have that, ' not in last_state:
+    #         last_state_ = 'I have that, ' + last_state
+    #         states.append(last_state_.split('I have that, ')[1].strip())
+    #     else:
+    #         states.append(last_state.split('I have that, ')[1].strip())
+    #     #goals = re.findall("the [a-z]{0,10} block is on top of the [a-z]{0,10} block", goal)
+    #     goals = CubePrompter.get_goal_state()
+    #     meetings = [g in new_state for g in goals]
+    #     if sum(meetings) == len(meetings):
+    #         r1 = 100
+    #     else:
+    #         r1 = 10 * sum(meetings) / len(meetings)
 
-            if (last_state, last_action) in self.transitions:
-                # if s, a, s' have been observed
-                new_state = self.transitions[(last_state, last_action)]
-            else:
-                # if s, a, s' have not been observed, use World Model to predict the state and store it.
-                lora_to_base(self.model)
-                
-                world_output = self.query_LM(self.model, self.world_tokenizer, world_update_prompt, do_sample=False, num_return_sequences=1,
-                                    eos_token_id=eos_token_id)[0]
-                world_change = world_output.split("[CHANGE]")[-1]
-                new_state = apply_change(world_change, last_state)
-                self.transitions[(last_state, last_action)] = new_state
-            last_state = new_state
-        if 'I have that, ' not in last_state:
-            last_state_ = 'I have that, ' + last_state
-            states.append(last_state_.split('I have that, ')[1].strip())
-        else:
-            states.append(last_state.split('I have that, ')[1].strip())
-        goals = re.findall("the [a-z]{0,10} block is on top of the [a-z]{0,10} block", goal)
-        meetings = [g in new_state for g in goals]
-        if sum(meetings) == len(meetings):
-            r1 = 100
-        else:
-            r1 = 10 * sum(meetings) / len(meetings)
+    #     r1 = torch.tensor(r1).to(self.device)
 
-        r1 = torch.tensor(r1).to(self.device)
-
-        return None, actions, states, r1, None
+    #     return None, actions, states, r1, None
 
     def local_search(self,
                             initial_state,
@@ -692,7 +770,7 @@ class BlocksWorldGFNTask(LightningModule):
             log_bf.append(torch.log(pb))
         return torch.stack(log_pf).sum(), torch.stack(log_bf).sum()
 
-    def get_ll_reward(self, actions, states, goal):
+    def get_ll_reward(self, actions, states, goal):  # revise this function!!
 
         reward = []
 
@@ -746,7 +824,7 @@ class BlocksWorldGFNTask(LightningModule):
 
         return acc_probs
 
-    def query_LM(self, worldmodel, tokenizer, prompt, eos_token_id, num_return_sequences=1, do_sample=True, temperature=0.7):
+    #def query_LM(self, worldmodel, tokenizer, prompt, eos_token_id, num_return_sequences=1, do_sample=True, temperature=0.7):
         temperature = temperature if do_sample else 0
         all_results = []
         input_ids = tokenizer.encode(prompt, return_tensors='pt').cuda()

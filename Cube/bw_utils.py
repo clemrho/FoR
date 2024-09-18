@@ -10,35 +10,6 @@ warnings.filterwarnings("ignore")
 
 IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 
-def generate_all_actions(state):
-    return_list = []
-    if "hand is empty" in state:
-        block = re.findall("the [a-z]{0,10} block is clear", state)
-        block_color = [re.search("the ([a-z]{0,10}) block is clear", b).group(1) for b in block]
-        
-        for c in block_color:
-
-            if f"the {c} block is on the table" in state:
-                return_list.append(f"Pick up the {c} block")
-            else:
-                try:
-                    c_ = re.search(f"the {c} block" + " is on top of the ([a-z]{0,10}) block", state).group(1)
-                except Exception as e:
-
-                    print("c: ", c)
-                    print("state: ", state)
-
-                    import time
-                    time.sleep(1) 
-                return_list.append(f"Unstack the {c} block from on top of the {c_} block")
-    else:
-        c = re.search("is holding the ([a-z]{0,10}) block", state).group(1)
-        block = re.findall("the [a-z]{0,10} block is clear", state)
-        clear_color = [re.search("the ([a-z]{0,10}) block is clear", b).group(1) for b in block]
-        for c_ in clear_color:
-            return_list.append(f"Stack the {c} block on top of the {c_} block")
-        return_list.append(f"Put down the {c} block")
-    return return_list
 
 def apply_change(change, state):
 

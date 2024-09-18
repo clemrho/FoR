@@ -40,8 +40,8 @@ def options():
     parser.add_argument("--use-buffer-prob", type=float, default=0.5)
     parser.add_argument("--n_samples", type=int, default=4)
     parser.add_argument("--ll-weight", type=float, default=1.0)
-    parser.add_argument("--task", type=str, default='blocksworld',
-                        choices=['blocksworld', 'alfworld'])
+    parser.add_argument("--task", type=str, default='cube',
+                        choices=['cube','blocksworld', 'game24'])
     parser.add_argument("--PG", type=bool, default=False,
                         )
     ## model
@@ -116,9 +116,9 @@ def main():
     model, tokenizer = load_model(args, device)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    if "blocksworld" in args.task:
-        from blocksworld import blocksworld_planning
-        blocksworld_planning(model, tokenizer, device, args)
+    if "cube" in args.task:
+        from cube import cube_planning
+        cube_planning(model, tokenizer, device, args)
     else:
         pass
 

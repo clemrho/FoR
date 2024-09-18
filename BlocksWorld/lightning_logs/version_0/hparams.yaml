@@ -1,0 +1,66 @@
+args: !!python/object:argparse.Namespace
+  PG: false
+  accumulate_grad_batches: 4
+  batch_size: 1
+  buffer_size: 50
+  epochs: 20
+  epsilon_end: 0.01
+  epsilon_start: 0.3
+  fp16: false
+  input_file: ./data/lexical/commongen_data/test.multi.constraint.json
+  ll_weight: 1.5
+  load_checkpoint_path: null
+  logZ_init: 5
+  logZ_lr: 1.0e-05
+  lr: 0.0001
+  mode: train
+  n_samples: 4
+  no_cuda: false
+  num_iters: 10000
+  p_buffer_end: 0.5
+  p_buffer_start: 0.25
+  pf_temp_end: 1.0
+  pf_temp_prob: 0.5
+  pf_temp_start: 4.0
+  pretrained_model: meta-llama/Meta-Llama-3-8B
+  reward_temp_end: 2.0
+  reward_temp_start: 1.0
+  seed: 321
+  step: 2
+  task: blocksworld
+  test_only: false
+  topk: 20
+  use_4bit: true
+  use_buffer_prob: 0.5
+  use_lora: true
+  wandb: false
+  world_model: meta-llama/Meta-Llama-3-8B
+limit_prompts: null
+logZ: !!python/object/apply:torch._utils._rebuild_parameter
+- !!python/object/apply:torch._utils._rebuild_tensor_v2
+  - !!python/object/apply:torch.storage._load_from_bytes
+    - !!binary |
+      gAKKCmz8nEb5IGqoUBkugAJN6QMugAJ9cQAoWBAAAABwcm90b2NvbF92ZXJzaW9ucQFN6QNYDQAA
+      AGxpdHRsZV9lbmRpYW5xAohYCgAAAHR5cGVfc2l6ZXNxA31xBChYBQAAAHNob3J0cQVLAlgDAAAA
+      aW50cQZLBFgEAAAAbG9uZ3EHSwR1dS6AAihYBwAAAHN0b3JhZ2VxAGN0b3JjaApGbG9hdFN0b3Jh
+      Z2UKcQFYDgAAADk0Mzg2MjQ1MzY5NTM2cQJYAwAAAGNwdXEDSwFOdHEEUS6AAl1xAFgOAAAAOTQz
+      ODYyNDUzNjk1MzZxAWEuAQAAAAAAAAAAAKBA
+  - 0
+  - !!python/tuple
+    - 1
+  - !!python/tuple
+    - 1
+  - false
+  - !!python/object/apply:collections.OrderedDict
+    - []
+- true
+- !!python/object/apply:collections.OrderedDict
+  - []
+replay_buffer: !!python/object:replay_buffer.ReplayBuffer
+  _buffer: {}
+  buffer_size: 50
+  prb: true
+  sim_tolerance: 0.25
+train_data: null
+train_size: 0.4
+val_data: null

@@ -1,0 +1,123 @@
+args: !!python/object:argparse.Namespace
+  accumulate_grad_batches: 25
+  batch_size: 4
+  buffer_size: 50
+  checkpoint_path: null
+  do_sft: false
+  do_test: true
+  do_train: true
+  do_val: false
+  end: 50
+  epoch_nums: 5
+  eval_every: 200
+  fp16: true
+  if_zx: false
+  input_file: ./data/lexical/commongen_data/test.multi.constraint.json
+  input_lgt_temp: 1
+  length: 20
+  load_checkpoint_path: null
+  logZ_init: 0
+  logZ_lr: 1.0e-05
+  lr: 1.0e-05
+  lr_nll_portion: 1.0
+  max_length: 20
+  mode: cube
+  no_cuda: false
+  no_loss_rerank: false
+  num_iters: 2000
+  output_lgt_temp: 1.0
+  pretrained_model: meta-llama/Meta-Llama-3-8B
+  seed: 12
+  start: 0
+  step: 2
+  straight_through: true
+  test_only: false
+  test_sample_nums: 20
+  topk: 10
+  train_data: data/cube_train.csv
+  use_4bit: true
+  use_buffer_prob: 0.5
+  use_gpt_value: false
+  use_lora: true
+  use_sysprompt: false
+  verbose: true
+  wandb: false
+  world_model_base: meta-llama/Llama-2-7b-hf
+logZ: !!python/object/apply:torch._utils._rebuild_parameter
+- !!python/object/apply:torch._utils._rebuild_tensor_v2
+  - !!python/object/apply:torch.storage._load_from_bytes
+    - !!binary |
+      gAKKCmz8nEb5IGqoUBkugAJN6QMugAJ9cQAoWBAAAABwcm90b2NvbF92ZXJzaW9ucQFN6QNYDQAA
+      AGxpdHRsZV9lbmRpYW5xAohYCgAAAHR5cGVfc2l6ZXNxA31xBChYBQAAAHNob3J0cQVLAlgDAAAA
+      aW50cQZLBFgEAAAAbG9uZ3EHSwR1dS6AAihYBwAAAHN0b3JhZ2VxAGN0b3JjaApGbG9hdFN0b3Jh
+      Z2UKcQFYDgAAADk0Mjk5MzkyNDI2MjA4cQJYAwAAAGNwdXEDSwFOdHEEUS6AAl1xAFgOAAAAOTQy
+      OTkzOTI0MjYyMDhxAWEuAQAAAAAAAAAAAAAA
+  - 0
+  - !!python/tuple
+    - 1
+  - !!python/tuple
+    - 1
+  - false
+  - !!python/object/apply:collections.OrderedDict
+    - []
+- true
+- !!python/object/apply:collections.OrderedDict
+  - []
+replay_buffer: !!python/object:replay_buffer.ReplayBuffer
+  _buffer: {}
+  buffer_size: 50
+  sim_tolerance: 0.25
+train_data:
+- 'Unnamed: 0'
+- state_1
+- state_2
+- state_3
+- state_4
+- state_5
+- state_6
+- state_7
+- state_8
+- state_9
+- state_10
+- state_11
+- state_12
+- state_13
+- state_14
+- state_15
+- state_16
+- state_17
+- state_18
+- state_19
+- state_20
+- state_21
+- state_22
+- state_23
+- state_24
+- moves
+val_data:
+- 'Unnamed: 0'
+- state_1
+- state_2
+- state_3
+- state_4
+- state_5
+- state_6
+- state_7
+- state_8
+- state_9
+- state_10
+- state_11
+- state_12
+- state_13
+- state_14
+- state_15
+- state_16
+- state_17
+- state_18
+- state_19
+- state_20
+- state_21
+- state_22
+- state_23
+- state_24
+- moves

@@ -1,0 +1,122 @@
+[2024-09-14 09:14:52,433][main.py][line:114][INFO] start training on GPU 6!
+[2024-09-14 09:14:52,434][main.py][line:115][INFO] Namespace(seed=321, no_cuda=False, pretrained_model='meta-llama/Meta-Llama-3-8B', world_model='meta-llama/Meta-Llama-3-8B', wandb=False, topk=20, fp16=False, step=2, input_file='./data/lexical/commongen_data/test.multi.constraint.json', load_checkpoint_path=None, test_only=False, epochs=20, use_4bit=True, use_lora=True, accumulate_grad_batches=4, buffer_size=50, use_buffer_prob=0.5, n_samples=4, ll_weight=1.5, task='blocksworld', PG=False, batch_size=1, logZ_init=5, reward_temp_start=1.0, reward_temp_end=2.0, epsilon_start=0.3, epsilon_end=0.01, pf_temp_start=4.0, pf_temp_end=1.0, pf_temp_prob=0.5, p_buffer_start=0.25, p_buffer_end=0.5, lr=0.0001, logZ_lr=1e-05, num_iters=10000, mode='train')
+[2024-09-14 09:17:24,635][modeling.py][line:965][INFO] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2024-09-14 09:17:32,780][font_manager.py][line:1047][INFO] Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: In FT2Font: Can not load face (unknown file format; error code 0x2)
+[2024-09-14 09:17:32,840][font_manager.py][line:1578][INFO] generated new fontManager
+[2024-09-14 09:17:34,348][config.py][line:58][INFO] PyTorch version 2.2.1 available.
+[2024-09-14 09:17:34,535][rank_zero.py][line:63][INFO] GPU available: True (cuda), used: True
+[2024-09-14 09:17:34,547][rank_zero.py][line:63][INFO] TPU available: False, using: 0 TPU cores
+[2024-09-14 09:17:34,547][rank_zero.py][line:63][INFO] IPU available: False, using: 0 IPUs
+[2024-09-14 09:17:34,547][rank_zero.py][line:63][INFO] HPU available: False, using: 0 HPUs
+[2024-09-14 09:17:35,101][csv_logs.py][line:174][WARNING] Missing logger folder: /home/yanze/FoR/BlocksWorld/lightning_logs
+[2024-09-14 09:17:35,552][cuda.py][line:61][INFO] LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [6]
+[2024-09-14 09:17:35,625][model_summary.py][line:94][INFO] 
+  | Name         | Type                 | Params
+------------------------------------------------------
+0 | model        | PeftModelForCausalLM | 4.6 B 
+  | other params | n/a                  | 1     
+------------------------------------------------------
+56.6 M    Trainable params
+4.5 B     Non-trainable params
+4.6 B     Total params
+18,388.894Total estimated model params size (MB)
+[2024-09-14 10:36:06,033][rank_zero.py][line:63][INFO] `Trainer.fit` stopped: `max_epochs=20` reached.
+[2024-09-14 10:36:09,166][profiler.py][line:76][INFO] FIT Profiler Report
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|  Action                                                           	|  Mean duration (s)	|  Num calls      	|  Total time (s) 	|  Percentage %   	|
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|  Total                                                            	|  -              	|  7582           	|  4714.6         	|  100 %          	|
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|  run_training_epoch                                               	|  235.5          	|  20             	|  4710.1         	|  99.903         	|
+|  run_training_batch                                               	|  14.819         	|  300            	|  4445.8         	|  94.297         	|
+|  [Strategy]SingleDeviceStrategy.training_step                     	|  9.4709         	|  300            	|  2841.3         	|  60.265         	|
+|  [Strategy]SingleDeviceStrategy.backward                          	|  5.3205         	|  300            	|  1596.1         	|  33.855         	|
+|  [LightningModule]BlocksWorldGFNTask.optimizer_step               	|  14.561         	|  80             	|  1164.9         	|  24.707         	|
+|  [Strategy]SingleDeviceStrategy.validation_step                   	|  8.5842         	|  30             	|  257.53         	|  5.4623         	|
+|  [Callback]TQDMProgressBar.on_train_batch_end                     	|  0.020537       	|  300            	|  6.1611         	|  0.13068        	|
+|  [LightningDataModule]PromptDataModule.setup                      	|  0.44664        	|  1              	|  0.44664        	|  0.0094736      	|
+|  [_TrainingEpochLoop].train_dataloader_next                       	|  0.00035385     	|  300            	|  0.10616        	|  0.0022516      	|
+|  [Strategy]SingleDeviceStrategy.batch_to_device                   	|  0.00018833     	|  330            	|  0.062148       	|  0.0013182      	|
+|  [LightningModule]BlocksWorldGFNTask.optimizer_zero_grad          	|  0.0005407      	|  80             	|  0.043256       	|  0.00091749     	|
+|  [LightningModule]BlocksWorldGFNTask.transfer_batch_to_device     	|  8.6772e-05     	|  330            	|  0.028635       	|  0.00060736     	|
+|  [Callback]ModelSummary.on_fit_start                              	|  0.028089       	|  1              	|  0.028089       	|  0.00059579     	|
+|  [LightningModule]BlocksWorldGFNTask.on_train_epoch_start         	|  0.0011106      	|  20             	|  0.022212       	|  0.00047113     	|
+|  [Callback]TQDMProgressBar.on_train_epoch_end                     	|  0.00098033     	|  20             	|  0.019607       	|  0.00041587     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_model_zero_grad	|  0.0069905      	|  2              	|  0.013981       	|  0.00029655     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_model_eval     	|  0.0068639      	|  2              	|  0.013728       	|  0.00029117     	|
+|  [LightningModule]BlocksWorldGFNTask.configure_gradient_clipping  	|  0.0001222      	|  80             	|  0.0097757      	|  0.00020735     	|
+|  [Callback]TQDMProgressBar.on_train_epoch_start                   	|  0.00036382     	|  20             	|  0.0072765      	|  0.00015434     	|
+|  [LightningModule]BlocksWorldGFNTask.configure_optimizers         	|  0.0055064      	|  1              	|  0.0055064      	|  0.00011679     	|
+|  [Callback]TQDMProgressBar.on_after_backward                      	|  1.6726e-05     	|  300            	|  0.0050177      	|  0.00010643     	|
+|  [Callback]TQDMProgressBar.on_validation_batch_end                	|  0.00014436     	|  30             	|  0.0043307      	|  9.1857e-05     	|
+|  [_EvaluationLoop].val_next                                       	|  9.7462e-05     	|  30             	|  0.0029238      	|  6.2017e-05     	|
+|  [Callback]ModelSummary.on_train_batch_end                        	|  7.7193e-06     	|  300            	|  0.0023158      	|  4.9119e-05     	|
+|  [Callback]ModelSummary.on_after_backward                         	|  5.4931e-06     	|  300            	|  0.0016479      	|  3.4954e-05     	|
+|  [LightningModule]BlocksWorldGFNTask.on_after_backward            	|  5.1169e-06     	|  300            	|  0.0015351      	|  3.256e-05      	|
+|  [Callback]TQDMProgressBar.on_train_batch_start                   	|  4.4582e-06     	|  300            	|  0.0013375      	|  2.8369e-05     	|
+|  [Callback]TQDMProgressBar.on_train_start                         	|  0.001191       	|  1              	|  0.001191       	|  2.5261e-05     	|
+|  [LightningModule]BlocksWorldGFNTask.on_train_batch_start         	|  3.6735e-06     	|  300            	|  0.001102       	|  2.3375e-05     	|
+|  [LightningModule]BlocksWorldGFNTask.on_before_batch_transfer     	|  3.3262e-06     	|  330            	|  0.0010977      	|  2.3282e-05     	|
+|  [LightningModule]BlocksWorldGFNTask.on_train_batch_end           	|  3.5828e-06     	|  300            	|  0.0010748      	|  2.2798e-05     	|
+|  [Callback]TQDMProgressBar.on_validation_start                    	|  0.00046698     	|  2              	|  0.00093397     	|  1.981e-05      	|
+|  [Callback]ModelSummary.on_train_batch_start                      	|  2.9636e-06     	|  300            	|  0.00088907     	|  1.8858e-05     	|
+|  [Strategy]SingleDeviceStrategy.on_train_batch_start              	|  2.3651e-06     	|  300            	|  0.00070953     	|  1.505e-05      	|
+|  [LightningModule]BlocksWorldGFNTask.on_after_batch_transfer      	|  2.1294e-06     	|  330            	|  0.0007027      	|  1.4905e-05     	|
+|  [Callback]TQDMProgressBar.on_validation_batch_start              	|  2.1554e-05     	|  30             	|  0.00064663     	|  1.3716e-05     	|
+|  [LightningDataModule]PromptDataModule.train_dataloader           	|  0.00062283     	|  1              	|  0.00062283     	|  1.3211e-05     	|
+|  [Callback]TQDMProgressBar.on_validation_end                      	|  0.00026897     	|  2              	|  0.00053794     	|  1.141e-05      	|
+|  [Callback]TQDMProgressBar.on_before_backward                     	|  1.7826e-06     	|  300            	|  0.00053478     	|  1.1343e-05     	|
+|  [Callback]TQDMProgressBar.on_before_optimizer_step               	|  5.8908e-06     	|  80             	|  0.00047126     	|  9.9957e-06     	|
+|  [LightningDataModule]PromptDataModule.val_dataloader             	|  0.00039922     	|  1              	|  0.00039922     	|  8.4676e-06     	|
+|  [LightningModule]BlocksWorldGFNTask.on_before_backward           	|  1.0481e-06     	|  300            	|  0.00031444     	|  6.6695e-06     	|
+|  [Callback]ModelSummary.on_before_optimizer_step                  	|  3.6961e-06     	|  80             	|  0.00029569     	|  6.2717e-06     	|
+|  [Callback]ModelSummary.on_before_backward                        	|  9.2379e-07     	|  300            	|  0.00027714     	|  5.8782e-06     	|
+|  [LightningModule]BlocksWorldGFNTask.on_before_optimizer_step     	|  2.747e-06      	|  80             	|  0.00021976     	|  4.6612e-06     	|
+|  [Callback]TQDMProgressBar.on_before_zero_grad                    	|  2.3953e-06     	|  80             	|  0.00019163     	|  4.0645e-06     	|
+|  [LightningModule]BlocksWorldGFNTask.lr_scheduler_step            	|  9.3843e-05     	|  2              	|  0.00018769     	|  3.9809e-06     	|
+|  [LightningModule]BlocksWorldGFNTask.on_before_zero_grad          	|  2.0631e-06     	|  80             	|  0.00016505     	|  3.5007e-06     	|
+|  [Callback]TQDMProgressBar.on_train_end                           	|  0.00013273     	|  1              	|  0.00013273     	|  2.8153e-06     	|
+|  [Callback]ModelSummary.on_train_epoch_end                        	|  5.3378e-06     	|  20             	|  0.00010676     	|  2.2644e-06     	|
+|  [Callback]ModelSummary.on_before_zero_grad                       	|  1.0076e-06     	|  80             	|  8.0606e-05     	|  1.7097e-06     	|
+|  [Callback]ModelSummary.on_train_epoch_start                      	|  3.2884e-06     	|  20             	|  6.5769e-05     	|  1.395e-06      	|
+|  [Callback]ModelSummary.on_validation_batch_end                   	|  1.9049e-06     	|  30             	|  5.7148e-05     	|  1.2121e-06     	|
+|  [LightningModule]BlocksWorldGFNTask.on_train_epoch_end           	|  1.9582e-06     	|  20             	|  3.9165e-05     	|  8.3071e-07     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_batch_end      	|  1.2004e-06     	|  30             	|  3.6013e-05     	|  7.6386e-07     	|
+|  [Callback]ModelSummary.on_validation_batch_start                 	|  1.1536e-06     	|  30             	|  3.4609e-05     	|  7.3408e-07     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_batch_start    	|  6.6845e-07     	|  30             	|  2.0053e-05     	|  4.2534e-07     	|
+|  [Callback]ModelSummary.on_validation_start                       	|  4.58e-06       	|  2              	|  9.16e-06       	|  1.9429e-07     	|
+|  [LightningModule]BlocksWorldGFNTask.on_train_start               	|  8.83e-06       	|  1              	|  8.83e-06       	|  1.8729e-07     	|
+|  [Callback]TQDMProgressBar.setup                                  	|  7.8611e-06     	|  1              	|  7.8611e-06     	|  1.6674e-07     	|
+|  [Callback]ModelSummary.on_train_start                            	|  7.568e-06      	|  1              	|  7.568e-06      	|  1.6052e-07     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_start          	|  3.232e-06      	|  2              	|  6.4641e-06     	|  1.3711e-07     	|
+|  [Strategy]SingleDeviceStrategy.on_validation_start               	|  3.145e-06      	|  2              	|  6.2899e-06     	|  1.3341e-07     	|
+|  [Callback]TQDMProgressBar.on_validation_epoch_start              	|  2.649e-06      	|  2              	|  5.2979e-06     	|  1.1237e-07     	|
+|  [Callback]TQDMProgressBar.on_fit_start                           	|  3.8301e-06     	|  1              	|  3.8301e-06     	|  8.1238e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_epoch_end      	|  1.9025e-06     	|  2              	|  3.805e-06      	|  8.0707e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.configure_callbacks          	|  3.74e-06       	|  1              	|  3.74e-06       	|  7.9327e-08     	|
+|  [Callback]ModelSummary.on_validation_epoch_start                 	|  1.766e-06      	|  2              	|  3.5319e-06     	|  7.4914e-08     	|
+|  [Callback]ModelSummary.on_validation_end                         	|  1.6645e-06     	|  2              	|  3.329e-06      	|  7.061e-08      	|
+|  [Callback]TQDMProgressBar.on_validation_epoch_end                	|  1.628e-06      	|  2              	|  3.256e-06      	|  6.9062e-08     	|
+|  [Callback]ModelSummary.setup                                     	|  2.8941e-06     	|  1              	|  2.8941e-06     	|  6.1385e-08     	|
+|  [LightningDataModule]PromptDataModule.prepare_data               	|  2.866e-06      	|  1              	|  2.866e-06      	|  6.079e-08      	|
+|  [Strategy]SingleDeviceStrategy.on_validation_end                 	|  1.425e-06      	|  2              	|  2.8501e-06     	|  6.0452e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_epoch_start    	|  1.399e-06      	|  2              	|  2.7979e-06     	|  5.9346e-08     	|
+|  [Callback]TQDMProgressBar.on_fit_end                             	|  2.712e-06      	|  1              	|  2.712e-06      	|  5.7523e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.on_fit_start                 	|  2.3571e-06     	|  1              	|  2.3571e-06     	|  4.9995e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.on_train_end                 	|  2.248e-06      	|  1              	|  2.248e-06      	|  4.7681e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.on_validation_end            	|  1.0735e-06     	|  2              	|  2.1469e-06     	|  4.5538e-08     	|
+|  [Callback]ModelSummary.on_train_end                              	|  2.022e-06      	|  1              	|  2.022e-06      	|  4.2888e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.setup                        	|  1.985e-06      	|  1              	|  1.985e-06      	|  4.2103e-08     	|
+|  [Strategy]SingleDeviceStrategy.on_train_start                    	|  1.941e-06      	|  1              	|  1.941e-06      	|  4.117e-08      	|
+|  [Callback]ModelSummary.on_validation_epoch_end                   	|  8.1997e-07     	|  2              	|  1.6399e-06     	|  3.4784e-08     	|
+|  [LightningModule]BlocksWorldGFNTask.on_fit_end                   	|  1.4401e-06     	|  1              	|  1.4401e-06     	|  3.0545e-08     	|
+|  [LightningDataModule]PromptDataModule.teardown                   	|  1.3099e-06     	|  1              	|  1.3099e-06     	|  2.7784e-08     	|
+|  [Callback]TQDMProgressBar.teardown                               	|  1.297e-06      	|  1              	|  1.297e-06      	|  2.751e-08      	|
+|  [LightningModule]BlocksWorldGFNTask.prepare_data                 	|  1.2589e-06     	|  1              	|  1.2589e-06     	|  2.6702e-08     	|
+|  [Callback]ModelSummary.on_fit_end                                	|  1.1011e-06     	|  1              	|  1.1011e-06     	|  2.3354e-08     	|
+|  [Callback]ModelSummary.teardown                                  	|  9.4704e-07     	|  1              	|  9.4704e-07     	|  2.0087e-08     	|
+|  [Strategy]SingleDeviceStrategy.on_train_end                      	|  7.1002e-07     	|  1              	|  7.1002e-07     	|  1.506e-08      	|
+|  [LightningModule]BlocksWorldGFNTask.teardown                     	|  5.0699e-07     	|  1              	|  5.0699e-07     	|  1.0754e-08     	|
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+

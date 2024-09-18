@@ -1,8 +1,9 @@
-step=$1
-mkdir -p ./logs/step_${step} && \
+#step= 2
+mkdir -p ./logs/opt && \
 
 CUDA_VISIBLE_DEVICES=6 python main.py \
-    --step $step \
+    --task "cube" \
+    --step 2 \
     --n_samples 4 \
     --epochs 20 \
     --ll-weight 1.5 \
